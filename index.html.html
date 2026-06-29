@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+
+<title>Warung Mutia — Aplikasi Kasir</title>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo brand-font">Warung <span>Mutia</span></div>
+      <div class="tagline">Sistem Kasir &amp; Stok</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-item dash active" data-target="dashboard" onclick="showSection('dashboard', this)">
+        <span class="dot"></span> Dashboard
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Data Barang</div>
+      <div class="nav-item" data-target="barang-tambah" onclick="showSection('barang-tambah', this)">Tambah Barang</div>
+      <div class="nav-item" data-target="barang-daftar" onclick="showSection('barang-daftar', this)">Daftar &amp; Edit Barang</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Transaksi</div>
+      <div class="nav-item" data-target="jual-cash" onclick="showSection('jual-cash', this)">Penjualan Cash</div>
+      <div class="nav-item" data-target="jual-hutang" onclick="showSection('jual-hutang', this)">Penjualan Hutang</div>
+      <div class="nav-item" data-target="riwayat-transaksi" onclick="showSection('riwayat-transaksi', this)">Riwayat Transaksi</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Data Hutang</div>
+      <div class="nav-item" data-target="daftar-hutang" onclick="showSection('daftar-hutang', this)">Daftar Hutang</div>
+      <div class="nav-item" data-target="bayar-hutang" onclick="showSection('bayar-hutang', this)">Pembayaran Hutang</div>
+      <div class="nav-item" data-target="riwayat-bayar" onclick="showSection('riwayat-bayar', this)">Riwayat Pembayaran</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Stok Barang</div>
+      <div class="nav-item" data-target="stok-masuk" onclick="showSection('stok-masuk', this)">Stok Masuk</div>
+      <div class="nav-item" data-target="stok-keluar" onclick="showSection('stok-keluar', this)">Stok Keluar</div>
+      <div class="nav-item" data-target="riwayat-stok" onclick="showSection('riwayat-stok', this)">Riwayat Stok</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Laporan</div>
+      <div class="nav-item" data-target="lap-penjualan" onclick="showSection('lap-penjualan', this)">Penjualan</div>
+      <div class="nav-item" data-target="lap-hutang" onclick="showSection('lap-hutang', this)">Hutang</div>
+      <div class="nav-item" data-target="lap-stok" onclick="showSection('lap-stok', this)">Stok</div>
+      <div class="nav-item" data-target="lap-untung" onclick="showSection('lap-untung', this)">Keuntungan</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Cadangan Data</div>
+      <div class="nav-item" data-target="backup" onclick="showSection('backup', this)">💾 Backup &amp; Restore</div>
+    </div>
+
+    <div style="padding:18px 20px;margin-top:auto;">
+      <button class="btn btn-outline btn-sm" style="width:100%;color:#d8cfc0;border-color:rgba(255,255,255,0.2);" onclick="resetAllData()">↺ Reset Semua Data</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="menu-toggle" onclick="toggleSidebar(true)">☰</button>
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <div class="subtitle" id="pageSubtitle">Ringkasan warung hari ini</div>
+        </div>
+      </div>
+      <div class="clock-pill" id="clockPill">—</div>
+    </div>
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="section active" id="sec-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="label">Penjualan Hari Ini</div>
+          <div class="value" id="stOmsetHariIni">Rp 0</div>
+          <div class="sub" id="stTrxHariIni">0 transaksi</div>
+        </div>
+        <div class="stat-card leaf">
+          <div class="label">Keuntungan Hari Ini</div>
+          <div class="value" id="stUntungHariIni">Rp 0</div>
+          <div class="sub">Estimasi kotor</div>
+        </div>
+        <div class="stat-card turmeric">
+          <div class="label">Total Hutang Aktif</div>
+          <div class="value" id="stHutangAktif">Rp 0</div>
+          <div class="sub" id="stJmlPelangganHutang">0 pelanggan</div>
+        </div>
+        <div class="stat-card ink">
+          <div class="label">Barang Stok Menipis</div>
+          <div class="value" id="stStokMenipis">0</div>
+          <div class="sub">≤ batas minimum</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <h2>Transaksi Terbaru</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Waktu</th><th>Pelanggan</th><th>Jenis</th><th>Total</th></tr></thead>
+              <tbody id="tblTrxTerbaru"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Stok Menipis</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Barang</th><th>Sisa</th></tr></thead>
+              <tbody id="tblStokMenipis"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="signature-mark">🏪 Warung Mutia — dikelola dari satu warung, untuk satu warung</div>
+    </section>
+
+    <!-- ============ TAMBAH BARANG ============ -->
+    <section class="section" id="sec-barang-tambah">
+      <div class="card">
+        <h2>Tambah Barang Baru</h2>
+        <form id="formTambahBarang" onsubmit="return tambahBarang(event)">
+          <div class="form-grid">
+            <div class="field"><label>Nama Barang</label><input type="text" id="b_nama" required placeholder="Contoh: Indomie Goreng"></div>
+            <div class="field"><label>Kategori</label><input type="text" id="b_kategori" placeholder="Contoh: Makanan Instan"></div>
+            <div class="field"><label>Harga Beli (Rp)</label><input type="number" id="b_hargabeli" min="0" required placeholder="2500"></div>
+            <div class="field"><label>Harga Jual (Rp)</label><input type="number" id="b_hargajual" min="0" required placeholder="3000"></div>
+            <div class="field"><label>Stok Awal</label><input type="number" id="b_stok" min="0" required placeholder="50"></div>
+            <div class="field"><label>Satuan</label><input type="text" id="b_satuan" placeholder="pcs / bungkus / kg"></div>
+            <div class="field"><label>Stok Minimum (peringatan)</label><input type="number" id="b_stokmin" min="0" value="5"></div>
+          </div>
+          <div class="btn-row">
+            <button type="submit" class="btn btn-primary">+ Simpan Barang</button>
+            <button type="reset" class="btn btn-outline">Bersihkan Form</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ DAFTAR & EDIT BARANG ============ -->
+    <section class="section" id="sec-barang-daftar">
+      <div class="card">
+        <h2>Daftar Barang</h2>
+        <div class="search-row">
+          <input type="text" id="cariBarang" placeholder="Cari nama barang..." oninput="renderDaftarBarang()">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nama</th><th>Kategori</th><th>Harga Beli</th><th>Harga Jual</th><th>Stok</th><th>Satuan</th><th>Aksi</th></tr></thead>
+            <tbody id="tblDaftarBarang"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PENJUALAN CASH ============ -->
+    <section class="section" id="sec-jual-cash">
+      <div class="two-col">
+        <div class="card">
+          <h2>Pilih Barang</h2>
+          <input type="text" id="cariJualCash" placeholder="Cari barang..." oninput="renderQuickPickCash()" style="margin-bottom:12px;">
+          <div class="quick-grid" id="quickPickCash"></div>
+        </div>
+        <div class="card">
+          <h2>Keranjang Cash</h2>
+          <div id="cartCash"><div class="empty-state"><span class="icon">🛒</span>Keranjang masih kosong</div></div>
+          <div class="total-row"><span>Total</span><span id="totalCash">Rp 0</span></div>
+          <div class="field" style="margin-top:14px;">
+            <label>Uang Diterima (Rp)</label>
+            <input type="number" id="cashDiterima" min="0" oninput="hitungKembalianCash()" placeholder="0">
+          </div>
+          <div class="helper-text" id="kembalianCash">Kembalian: Rp 0</div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="prosesCash()">✓ Proses Pembayaran</button>
+            <button class="btn btn-outline" onclick="kosongkanCart('cash')">Kosongkan</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PENJUALAN HUTANG ============ -->
+    <section class="section" id="sec-jual-hutang">
+      <div class="two-col">
+        <div class="card">
+          <h2>Pilih Barang</h2>
+          <input type="text" id="cariJualHutang" placeholder="Cari barang..." oninput="renderQuickPickHutang()" style="margin-bottom:12px;">
+          <div class="quick-grid" id="quickPickHutang"></div>
+        </div>
+        <div class="card">
+          <h2>Keranjang Hutang</h2>
+          <div class="field" style="margin-bottom:14px;">
+            <label>Nama Pelanggan</label>
+            <input type="text" id="namaPelangganHutang" placeholder="Contoh: Bu Siti" required>
+          </div>
+          <div id="cartHutang"><div class="empty-state"><span class="icon">🛒</span>Keranjang masih kosong</div></div>
+          <div class="total-row"><span>Total Hutang</span><span id="totalHutang">Rp 0</span></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="prosesHutang()">✓ Catat sebagai Hutang</button>
+            <button class="btn btn-outline" onclick="kosongkanCart('hutang')">Kosongkan</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RIWAYAT TRANSAKSI ============ -->
+    <section class="section" id="sec-riwayat-transaksi">
+      <div class="card">
+        <h2>Riwayat Transaksi</h2>
+        <div class="filter-bar">
+          <div class="field"><label>Dari Tanggal</label><input type="date" id="filterTrxDari"></div>
+          <div class="field"><label>Sampai Tanggal</label><input type="date" id="filterTrxSampai"></div>
+          <div class="field">
+            <label>Jenis</label>
+            <select id="filterTrxJenis">
+              <option value="">Semua</option>
+              <option value="cash">Cash</option>
+              <option value="hutang">Hutang</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" style="height:42px;" onclick="renderRiwayatTransaksi()">Tampilkan</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Waktu</th><th>Pelanggan</th><th>Jenis</th><th>Item</th><th>Total</th><th>Untung</th><th>Aksi</th></tr></thead>
+            <tbody id="tblRiwayatTransaksi"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DAFTAR HUTANG ============ -->
+    <section class="section" id="sec-daftar-hutang">
+      <div class="card">
+        <h2>Daftar Hutang Aktif (per Pelanggan)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Pelanggan</th><th>Total Hutang</th><th>Sudah Dibayar</th><th>Sisa Hutang</th><th>Status</th></tr></thead>
+            <tbody id="tblDaftarHutang"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PEMBAYARAN HUTANG ============ -->
+    <section class="section" id="sec-bayar-hutang">
+      <div class="card">
+        <h2>Pembayaran Hutang</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label>Pilih Pelanggan</label>
+            <select id="bayarPelanggan" onchange="updateInfoSisaHutang()"></select>
+          </div>
+          <div class="field">
+            <label>Sisa Hutang Saat Ini</label>
+            <input type="text" id="infoSisaHutang" disabled value="Rp 0">
+          </div>
+          <div class="field">
+            <label>Jumlah Bayar (Rp)</label>
+            <input type="number" id="jumlahBayarHutang" min="0">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-success" onclick="prosesBayarHutang()">✓ Simpan Pembayaran</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RIWAYAT PEMBAYARAN ============ -->
+    <section class="section" id="sec-riwayat-bayar">
+      <div class="card">
+        <h2>Riwayat Pembayaran Hutang</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Waktu</th><th>Pelanggan</th><th>Jumlah Bayar</th></tr></thead>
+            <tbody id="tblRiwayatBayar"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STOK MASUK ============ -->
+    <section class="section" id="sec-stok-masuk">
+      <div class="card">
+        <h2>Tambah Stok Masuk</h2>
+        <form id="formStokMasuk" onsubmit="return prosesStokMasuk(event)">
+          <div class="form-grid">
+            <div class="field">
+              <label>Pilih Barang</label>
+              <select id="masukBarang" required></select>
+            </div>
+            <div class="field"><label>Jumlah Masuk</label><input type="number" id="masukJumlah" min="1" required></div>
+            <div class="field"><label>Keterangan (opsional)</label><input type="text" id="masukKet" placeholder="Contoh: Restok dari distributor"></div>
+          </div>
+          <div class="btn-row">
+            <button type="submit" class="btn btn-success">+ Tambahkan Stok</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ STOK KELUAR ============ -->
+    <section class="section" id="sec-stok-keluar">
+      <div class="card">
+        <h2>Stok Keluar (di luar penjualan)</h2>
+        <p class="helper-text" style="margin-bottom:14px;">Gunakan untuk barang rusak, hilang, kadaluwarsa, atau dipakai sendiri. Stok keluar dari penjualan sudah otomatis tercatat di menu Transaksi.</p>
+        <form id="formStokKeluar" onsubmit="return prosesStokKeluar(event)">
+          <div class="form-grid">
+            <div class="field">
+              <label>Pilih Barang</label>
+              <select id="keluarBarang" required></select>
+            </div>
+            <div class="field"><label>Jumlah Keluar</label><input type="number" id="keluarJumlah" min="1" required></div>
+            <div class="field"><label>Alasan</label>
+              <select id="keluarAlasan">
+                <option>Rusak</option>
+                <option>Hilang</option>
+                <option>Kadaluwarsa</option>
+                <option>Pakai Sendiri</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button type="submit" class="btn btn-primary">− Catat Stok Keluar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ RIWAYAT STOK ============ -->
+    <section class="section" id="sec-riwayat-stok">
+      <div class="card">
+        <h2>Riwayat Pergerakan Stok</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Waktu</th><th>Barang</th><th>Jenis</th><th>Jumlah</th><th>Keterangan</th></tr></thead>
+            <tbody id="tblRiwayatStok"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LAPORAN PENJUALAN ============ -->
+    <section class="section" id="sec-lap-penjualan">
+      <div class="card">
+        <h2>Laporan Penjualan</h2>
+        <div class="pill-tabs">
+          <div class="pill-tab active" data-p="harian" onclick="setPeriodeLaporan('penjualan','harian',this)">Harian</div>
+          <div class="pill-tab" data-p="bulanan" onclick="setPeriodeLaporan('penjualan','bulanan',this)">Bulanan</div>
+          <div class="pill-tab" data-p="semua" onclick="setPeriodeLaporan('penjualan','semua',this)">Semua</div>
+        </div>
+        <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-card"><div class="label">Total Omset</div><div class="value" id="lapPenjualanOmset">Rp 0</div></div>
+          <div class="stat-card leaf"><div class="label">Jumlah Transaksi</div><div class="value" id="lapPenjualanJumlah">0</div></div>
+          <div class="stat-card turmeric"><div class="label">Rata-rata / Transaksi</div><div class="value" id="lapPenjualanRata">Rp 0</div></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Waktu</th><th>Pelanggan</th><th>Jenis</th><th>Total</th></tr></thead>
+            <tbody id="tblLapPenjualan"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LAPORAN HUTANG ============ -->
+    <section class="section" id="sec-lap-hutang">
+      <div class="card">
+        <h2>Laporan Hutang</h2>
+        <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-card turmeric"><div class="label">Total Hutang Diberikan</div><div class="value" id="lapHutangTotal">Rp 0</div></div>
+          <div class="stat-card leaf"><div class="label">Total Sudah Dibayar</div><div class="value" id="lapHutangDibayar">Rp 0</div></div>
+          <div class="stat-card"><div class="label">Sisa Belum Dibayar</div><div class="value" id="lapHutangSisa">Rp 0</div></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Pelanggan</th><th>Total Hutang</th><th>Dibayar</th><th>Sisa</th><th>Status</th></tr></thead>
+            <tbody id="tblLapHutang"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LAPORAN STOK ============ -->
+    <section class="section" id="sec-lap-stok">
+      <div class="card">
+        <h2>Laporan Stok</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Barang</th><th>Stok Saat Ini</th><th>Stok Minimum</th><th>Status</th><th>Nilai Stok (Modal)</th></tr></thead>
+            <tbody id="tblLapStok"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LAPORAN KEUNTUNGAN ============ -->
+    <section class="section" id="sec-lap-untung">
+      <div class="card">
+        <h2>Laporan Keuntungan</h2>
+        <div class="pill-tabs">
+          <div class="pill-tab active" data-p="harian" onclick="setPeriodeLaporan('untung','harian',this)">Harian</div>
+          <div class="pill-tab" data-p="bulanan" onclick="setPeriodeLaporan('untung','bulanan',this)">Bulanan</div>
+          <div class="pill-tab" data-p="semua" onclick="setPeriodeLaporan('untung','semua',this)">Semua</div>
+        </div>
+        <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-card"><div class="label">Total Omset</div><div class="value" id="lapUntungOmset">Rp 0</div></div>
+          <div class="stat-card ink"><div class="label">Total Modal</div><div class="value" id="lapUntungModal">Rp 0</div></div>
+          <div class="stat-card leaf"><div class="label">Estimasi Keuntungan</div><div class="value" id="lapUntungLaba">Rp 0</div></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Waktu</th><th>Omset</th><th>Modal</th><th>Untung</th></tr></thead>
+            <tbody id="tblLapUntung"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BACKUP & RESTORE ============ -->
+    <section class="section" id="sec-backup">
+      <div class="card">
+        <h2>📦 Ringkasan Data Tersimpan</h2>
+        <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="stat-card"><div class="label">Barang</div><div class="value" id="bkJmlBarang">0</div></div>
+          <div class="stat-card leaf"><div class="label">Transaksi</div><div class="value" id="bkJmlTransaksi">0</div></div>
+          <div class="stat-card turmeric"><div class="label">Pembayaran Hutang</div><div class="value" id="bkJmlBayar">0</div></div>
+          <div class="stat-card ink"><div class="label">Log Stok</div><div class="value" id="bkJmlStokLog">0</div></div>
+        </div>
+        <div class="helper-text" id="bkInfoTerakhir" style="margin-top:-8px;margin-bottom:4px;"></div>
+        <div class="helper-text">Semua data di atas tersimpan lokal di browser ini (localStorage), tanpa internet. Lakukan backup secara berkala agar data tidak hilang jika cache browser dibersihkan atau ganti device.</div>
+      </div>
+
+      <div class="card">
+        <h2>⬇️ Backup (Unduh Data)</h2>
+        <div class="helper-text" style="margin-bottom:14px;">Backup JSON dipakai untuk memulihkan data nanti (cadangan lengkap &amp; akurat). Backup Excel dipakai untuk dilihat, dicetak, atau diolah di Excel/Spreadsheet — tidak bisa di-import kembali.</div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="exportJSON()">⬇️ Unduh Backup JSON</button>
+          <button class="btn btn-success" onclick="exportExcel()">📊 Unduh sebagai Excel (.xls)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>⬆️ Restore (Pulihkan Data)</h2>
+        <div class="helper-text" style="margin-bottom:14px;">Pilih file backup JSON (.json) yang pernah diunduh. <strong>Perhatian:</strong> proses ini akan menggantikan seluruh data yang ada saat ini di aplikasi dengan data dari file backup.</div>
+        <div class="field" style="max-width:420px;">
+          <label>File Backup (.json)</label>
+          <input type="file" id="importFileInput" accept="application/json,.json" onchange="importJSON(event)">
+        </div>
+      </div>
+      <div class="signature-mark">🏪 Warung Mutia — backup rutin, warung lebih aman</div>
+    </section>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- RECEIPT MODAL -->
+<div class="receipt-modal-bg" id="receiptModalBg">
+  <div class="receipt" id="receiptContent"></div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
