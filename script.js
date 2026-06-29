@@ -1,4 +1,4 @@
-<script>
+
 /* ============================================================
    WARUNG MUTIA — APLIKASI KASIR SEDERHANA
    Data disimpan di localStorage browser (tanpa server)
@@ -836,4 +836,3 @@ if(db.barang.length===0 && db.transaksi.length===0){
 }
 tickClock();
 renderDashboard();
-</script>
