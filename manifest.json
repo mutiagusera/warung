@@ -1,7 +1,7 @@
 {
   "name": "MUTIA",
   "short_name": "GUSERA",
-  "start_url": "/Warung",
+  "start_url": "/warung/",
   "display": "standalone",
   "icons": [
     {
