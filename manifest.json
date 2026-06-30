@@ -1,0 +1,13 @@
+{
+  "name": "MUTIA",
+  "short_name": "GUSERA",
+  "start_url": "Warung",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
